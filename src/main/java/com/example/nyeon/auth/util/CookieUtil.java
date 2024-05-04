@@ -28,9 +28,6 @@ public class CookieUtil {
         return CookieBuilder.builder(request);
     }
 
-    public static String generateExpiredCookie(@NonNull String name, @NonNull HttpServletRequest request) {
-        return CookieBuilder.builder(request).name(name).value("-").maxAge(Duration.ZERO).build();
-    }
 
     public static class CookieBuilder {
         private static final Rfc6265CookieProcessor processor = new Rfc6265CookieProcessor();
@@ -81,7 +78,7 @@ public class CookieUtil {
             return this;
         }
 
-        public String build() {
+        public Cookie build() {
             Cookie cookie = new Cookie(name, value);
             cookie.setHttpOnly(httpOnly);
             cookie.setSecure(secure);
@@ -90,7 +87,11 @@ public class CookieUtil {
             if (sameSite != null) {
                 cookie.setAttribute("SameSite", sameSite.toString());
             }
-            return processor.generateHeader(cookie,request);
+            return cookie;
+        }
+
+        public String buildToString() {
+            return processor.generateHeader(build(), request);
         }
     }
 }
