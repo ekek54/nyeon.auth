@@ -9,11 +9,13 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Entity
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class User {
     @Id
@@ -43,10 +45,18 @@ public class User {
         this.loginProvider = loginProvider;
     }
 
-    public User() {
-    }
-
     public static User createUser(String name, String email, String loginProvider) {
         return new User(name, email, loginProvider);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", loginProvider='" + loginProvider + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }
