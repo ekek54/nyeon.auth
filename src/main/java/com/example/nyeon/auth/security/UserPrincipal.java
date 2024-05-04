@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -16,10 +17,14 @@ public class UserPrincipal implements OAuth2User {
     private final List<GrantedAuthority> authorities;
     private final Map<String, Object> attributes;
 
-    public UserPrincipal(User user, List<GrantedAuthority> authorities, Map<String, Object> attributes) {
+    private UserPrincipal(User user, List<GrantedAuthority> authorities, Map<String, Object> attributes) {
         this.user = user;
         this.authorities = authorities;
         this.attributes = attributes;
+    }
+
+    public static UserPrincipal createUserPrincipal(User user, Map<String, Object> attributes) {
+        return new UserPrincipal(user, List.of(UserRole.ROLE_USER::name), attributes);
     }
 
     @Override
@@ -35,5 +40,12 @@ public class UserPrincipal implements OAuth2User {
     @Override
     public String getName() {
         return user.getEmail();
+    }
+
+    @Override
+    public String toString() {
+        return "UserPrincipal{" +
+                "user=" + user +
+                '}';
     }
 }

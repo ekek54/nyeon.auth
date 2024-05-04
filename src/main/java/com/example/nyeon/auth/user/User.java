@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -38,10 +37,16 @@ public class User {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Builder
     private User(String name, String email, String loginProvider) {
         this.name = name;
         this.email = email;
         this.loginProvider = loginProvider;
+    }
+
+    public User() {
+    }
+
+    public static User createUser(String name, String email, String loginProvider) {
+        return new User(name, email, loginProvider);
     }
 }
