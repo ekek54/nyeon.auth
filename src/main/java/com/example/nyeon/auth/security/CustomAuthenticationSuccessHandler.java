@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import org.springframework.boot.web.server.Cookie.SameSite;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -19,7 +20,7 @@ import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
 public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
-    private static final String JWT_COOKIE_NAME = "ROT";
+    private static final String JWT_COOKIE_NAME = "ROT"; // Resource Owner Token
     private final RequestCache requestCache;
     private final JwtEncoder jwtEncoder;
 
@@ -39,8 +40,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             super.onAuthenticationSuccess(request, response, authentication);
             return;
         }
-
-        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        OAuth2User principal = (OAuth2User) authentication.getPrincipal();
         String userUUID = principal.getName();
 
         Jwt jwt = createJwt(userUUID);
