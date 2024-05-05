@@ -14,7 +14,7 @@ public class OAuth2UserPrincipal extends DefaultOAuth2User {
     private final User user;
 
     private OAuth2UserPrincipal(User user, List<GrantedAuthority> authorities, Map<String, Object> attributes) {
-        super(authorities, attributes, "sub");
+        super(authorities, attributes, "name");
         this.user = user;
     }
 
