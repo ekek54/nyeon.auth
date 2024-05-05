@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import org.springframework.boot.web.server.Cookie.SameSite;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -42,10 +41,9 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         }
 
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        String email = principal.getUser().getEmail();
-        String loginProvider = principal.getUser().getLoginProvider();
+        String userUUID = principal.getName();
 
-        Jwt jwt = createJwt(email, loginProvider);
+        Jwt jwt = createJwt(userUUID);
 
         attachJwtCookie(request, response, jwt);
         String targetUrl = savedRequest.getRedirectUrl();
@@ -54,10 +52,9 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         this.getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private Jwt createJwt(String email, String loginProvider) {
+    private Jwt createJwt(String userId) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(email)
-                .claim("loginProvider", loginProvider)
+                .subject(userId)
                 .expiresAt(Instant.now().plus(JWT_EXPIRATION))
                 .build();
 
