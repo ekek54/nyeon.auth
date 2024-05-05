@@ -1,6 +1,7 @@
-package com.example.nyeon.auth.security;
+package com.example.nyeon.auth.security.userservice;
 
 import com.example.nyeon.auth.exception.BadRequestException;
+import com.example.nyeon.auth.security.principal.OAuth2UserPrincipal;
 import com.example.nyeon.auth.user.UserRepository;
 import java.util.Map;
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class SocialOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         validateEmail(oAuth2User);
         User user = createIfNewElseGetUser(oAuth2User, loginProvider);
-        return UserPrincipal.createUserPrincipal(user, oAuth2User.getAttributes());
+        return OAuth2UserPrincipal.create(user, oAuth2User.getAttributes());
     }
 
     private User createIfNewElseGetUser(OAuth2User oAuth2User, String loginProvider) {
