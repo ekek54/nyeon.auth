@@ -47,12 +47,10 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
     private final JwtDecoder jwtDecoder;
     private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
             .getContextHolderStrategy();
-    private final SecretKey encryptionKey;
 
-    public JWTCookieSecurityContextRepository(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder, UserRepository userRepository) {
+    public JWTCookieSecurityContextRepository(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
-        this.encryptionKey = EncryptionUtil.generateKey();
     }
 
     @Override

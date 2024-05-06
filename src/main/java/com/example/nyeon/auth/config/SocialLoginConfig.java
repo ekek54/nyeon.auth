@@ -1,6 +1,5 @@
 package com.example.nyeon.auth.config;
 
-import com.example.nyeon.auth.security.CustomAuthenticationSuccessHandler;
 import com.example.nyeon.auth.security.JWTCookieSecurityContextRepository;
 import com.example.nyeon.auth.security.StatelessOAuth2AuthorizationRequestRepository;
 import com.example.nyeon.auth.user.UserRepository;
@@ -15,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.CookieRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -27,9 +27,6 @@ public class SocialLoginConfig {
 
     @Autowired
     private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain socailLoginSecurityFilterChain(HttpSecurity http)
@@ -56,11 +53,6 @@ public class SocialLoginConfig {
     }
 
     @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return new CustomAuthenticationSuccessHandler(jwtEncoder, cookieRequestCache());
-    }
-
-    @Bean
     public StatelessOAuth2AuthorizationRequestRepository authorizationRequestRepository() {
         return new StatelessOAuth2AuthorizationRequestRepository();
     }
@@ -72,6 +64,11 @@ public class SocialLoginConfig {
 
     @Bean
     public SecurityContextRepository securityContextRepository() {
-        return new JWTCookieSecurityContextRepository(jwtEncoder, jwtDecoder, userRepository);
+        return new JWTCookieSecurityContextRepository(jwtEncoder, jwtDecoder);
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        return new SavedRequestAwareAuthenticationSuccessHandler();
     }
 }
