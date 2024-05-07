@@ -1,12 +1,11 @@
 package com.example.nyeon.auth.config;
 
-import com.example.nyeon.auth.security.CustomAuthenticationSuccessHandler;
 import com.example.nyeon.auth.security.JWTCookieSecurityContextRepository;
 import com.example.nyeon.auth.security.StatelessOAuth2AuthorizationRequestRepository;
-import com.example.nyeon.auth.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -14,8 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.CookieRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -30,6 +27,7 @@ public class SocialLoginConfig {
     private JwtDecoder jwtDecoder;
 
     @Bean
+    @Order(2)
     public SecurityFilterChain socailLoginSecurityFilterChain(HttpSecurity http)
             throws Exception {
         //Formatter:off
