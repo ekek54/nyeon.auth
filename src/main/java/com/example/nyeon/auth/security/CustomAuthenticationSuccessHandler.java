@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
+@Deprecated
 public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     private static final String JWT_COOKIE_NAME = "ROT"; // Resource Owner Token
     private final RequestCache requestCache;
