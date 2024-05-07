@@ -2,6 +2,7 @@ package com.example.nyeon.auth.security;
 
 import com.example.nyeon.auth.util.CookieUtil;
 import com.example.nyeon.auth.util.EncryptionUtil;
+import com.example.nyeon.auth.util.SerializeUtil;
 import com.nimbusds.jose.shaded.gson.Gson;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.Assert;
+import org.springframework.util.SerializationUtils;
 
 /**
  * 참고 문서: https://www.jessym.com/articles/stateless-oauth2-social-logins-with-spring-boot
@@ -24,11 +26,6 @@ public class StatelessOAuth2AuthorizationRequestRepository implements
     private static final Base64.Encoder B64E = Base64.getEncoder();
     private static final Base64.Decoder B64D = Base64.getDecoder();
 
-    /*
-     * Gson is utilized for the serialization and deserialization of OAuth2AuthorizationRequest.
-     * This is due to the fact that the default library, Jackson, does not support the deserialization of OAuth2AuthorizationRequest.
-     */
-    private static final Gson GSON = new Gson();
 
     private final SecretKey encryptionKey;
 
@@ -98,7 +95,7 @@ public class StatelessOAuth2AuthorizationRequestRepository implements
 
     private String encrypt(OAuth2AuthorizationRequest authorizationRequest) {
         try {
-            byte[] bytes = GSON.toJson(authorizationRequest).getBytes();
+            byte[] bytes = SerializeUtil.serialize(authorizationRequest).getBytes();
             byte[] encryptedBytes = EncryptionUtil.encrypt(encryptionKey, bytes);
             return B64E.encodeToString(encryptedBytes);
         } catch (Exception e) {
@@ -110,7 +107,7 @@ public class StatelessOAuth2AuthorizationRequestRepository implements
         try {
             byte[] encryptedBytes = B64D.decode(encrypted);
             byte[] bytes = EncryptionUtil.decrypt(encryptionKey, encryptedBytes);
-            return GSON.fromJson(new String(bytes), OAuth2AuthorizationRequest.class);
+            return SerializeUtil.deserialize(new String(bytes), OAuth2AuthorizationRequest.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

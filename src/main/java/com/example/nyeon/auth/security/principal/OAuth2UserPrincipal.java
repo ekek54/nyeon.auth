@@ -3,6 +3,7 @@ package com.example.nyeon.auth.security.principal;
 import com.example.nyeon.auth.security.UserRole;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import com.example.nyeon.auth.user.User;
@@ -11,26 +12,26 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 @Getter
 public class OAuth2UserPrincipal extends DefaultOAuth2User {
 
-    private final User user;
+    private final UUID userId;
 
-    private OAuth2UserPrincipal(User user, List<GrantedAuthority> authorities, Map<String, Object> attributes) {
+    private OAuth2UserPrincipal(UUID userId, List<GrantedAuthority> authorities, Map<String, Object> attributes) {
         super(authorities, attributes, "name");
-        this.user = user;
+        this.userId = userId;
     }
 
-    public static OAuth2UserPrincipal create(User user, Map<String, Object> attributes) {
-        return new OAuth2UserPrincipal(user, List.of(UserRole.ROLE_USER::name), attributes);
+    public static OAuth2UserPrincipal create(UUID userId, Map<String, Object> attributes) {
+        return new OAuth2UserPrincipal(userId, List.of(UserRole.ROLE_USER::name), attributes);
     }
 
     @Override
     public String getName() {
-        return user.getId().toString();
+        return userId.toString();
     }
 
     @Override
     public String toString() {
         return "UserPrincipal{" +
-                "user=" + user +
+                "user=" + userId +
                 '}';
     }
 }

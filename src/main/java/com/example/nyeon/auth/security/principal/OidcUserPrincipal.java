@@ -3,6 +3,7 @@ package com.example.nyeon.auth.security.principal;
 import com.example.nyeon.auth.security.UserRole;
 import com.example.nyeon.auth.user.User;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -12,21 +13,21 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 @Getter
 public class OidcUserPrincipal extends DefaultOidcUser {
 
-    private final User user;
+    private final UUID userId;
 
-    private OidcUserPrincipal(User user, List<GrantedAuthority> authorities, OidcIdToken idToken,
+    private OidcUserPrincipal(UUID userId, List<GrantedAuthority> authorities, OidcIdToken idToken,
                               OidcUserInfo userInfo) {
         super(authorities, idToken, userInfo);
-        this.user = user;
+        this.userId = userId;
     }
 
-    public static OidcUserPrincipal create(User user, OidcIdToken idToken, OidcUserInfo userInfo) {
-        return new OidcUserPrincipal(user, List.of(UserRole.ROLE_USER::name), idToken, userInfo);
+    public static OidcUserPrincipal create(UUID userId, OidcIdToken idToken, OidcUserInfo userInfo) {
+        return new OidcUserPrincipal(userId, List.of(UserRole.ROLE_USER::name), idToken, userInfo);
     }
 
 
     @Override
     public String getName() {
-        return user.getId().toString();
+        return userId.toString();
     }
 }

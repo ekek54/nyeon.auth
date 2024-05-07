@@ -26,7 +26,7 @@ public class SocialOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         validateEmail(oAuth2User);
         User user = createIfNewElseGetUser(oAuth2User, loginProvider);
-        return OAuth2UserPrincipal.create(user, oAuth2User.getAttributes());
+        return OAuth2UserPrincipal.create(user.getId(), oAuth2User.getAttributes());
     }
 
     private User createIfNewElseGetUser(OAuth2User oAuth2User, String loginProvider) {

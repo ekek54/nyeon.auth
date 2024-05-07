@@ -26,7 +26,7 @@ public class SocialOidcUserService extends OidcUserService {
         OidcUser oidcUser = super.loadUser(userRequest);
         validateEmail(oidcUser);
         User user = createIfNewElseGetUser(oidcUser, loginProvider);
-        return OidcUserPrincipal.create(user, oidcUser.getIdToken(), oidcUser.getUserInfo());
+        return OidcUserPrincipal.create(user.getId(), oidcUser.getIdToken(), oidcUser.getUserInfo());
     }
 
     private User createIfNewElseGetUser(OidcUser oidcUser, String loginProvider) {
