@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.security;
+package com.example.nyeon.auth.sociallogin;
 
 import com.example.nyeon.auth.util.CookieUtil;
 import jakarta.servlet.http.Cookie;

@@ -1,7 +1,6 @@
-package com.example.nyeon.auth.security.principal;
+package com.example.nyeon.auth.sociallogin.principal;
 
-import com.example.nyeon.auth.security.UserRole;
-import com.example.nyeon.auth.user.User;
+import com.example.nyeon.auth.sociallogin.UserRole;
 import java.util.List;
 import java.util.UUID;
 import lombok.Getter;

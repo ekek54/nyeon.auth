@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.security;
+package com.example.nyeon.auth.sociallogin;
 
 import org.springframework.security.core.GrantedAuthority;
 

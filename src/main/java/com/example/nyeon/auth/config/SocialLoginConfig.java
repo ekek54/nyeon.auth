@@ -1,7 +1,7 @@
 package com.example.nyeon.auth.config;
 
-import com.example.nyeon.auth.security.JWTCookieSecurityContextRepository;
-import com.example.nyeon.auth.security.StatelessOAuth2AuthorizationRequestRepository;
+import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
+import com.example.nyeon.auth.sociallogin.StatelessOAuth2AuthorizationRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
