@@ -1,35 +1,17 @@
 package com.example.nyeon.auth.security;
 
-import com.example.nyeon.auth.exception.BadRequestException;
-import com.example.nyeon.auth.exception.UnAuthorizedException;
-import com.example.nyeon.auth.security.principal.OAuth2UserPrincipal;
-import com.example.nyeon.auth.user.User;
-import com.example.nyeon.auth.user.UserRepository;
 import com.example.nyeon.auth.util.CookieUtil;
-import com.example.nyeon.auth.util.EncryptionUtil;
-import com.example.nyeon.auth.util.SerializeUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.nio.file.attribute.UserPrincipal;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
-import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.Cookie.SameSite;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -112,7 +94,7 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
                 .value(jwt.getTokenValue())
                 .maxAge(CONTEXT_COOKIE_EXPIRY)
                 .httpOnly(true)
-                .sameSite(SameSite.STRICT)
+                .sameSite(SameSite.LAX)
                 .build();
     }
 

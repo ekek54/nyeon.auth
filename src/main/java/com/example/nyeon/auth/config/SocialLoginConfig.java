@@ -1,5 +1,6 @@
 package com.example.nyeon.auth.config;
 
+import com.example.nyeon.auth.security.CustomAuthenticationSuccessHandler;
 import com.example.nyeon.auth.security.JWTCookieSecurityContextRepository;
 import com.example.nyeon.auth.security.StatelessOAuth2AuthorizationRequestRepository;
 import com.example.nyeon.auth.user.UserRepository;
@@ -37,7 +38,6 @@ public class SocialLoginConfig {
                         .requestMatchers("favicon.ico", "robots.txt", "error").permitAll()
                         .anyRequest().authenticated()
                 ).oauth2Login(oauth -> oauth
-                        .successHandler(authenticationSuccessHandler())
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestRepository(authorizationRequestRepository())
                         )
@@ -67,8 +67,8 @@ public class SocialLoginConfig {
         return new JWTCookieSecurityContextRepository(jwtEncoder, jwtDecoder);
     }
 
-    @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return new SavedRequestAwareAuthenticationSuccessHandler();
-    }
+//    @Bean
+//    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+//        return new CustomAuthenticationSuccessHandler(jwtEncoder, cookieRequestCache());
+//    }
 }
