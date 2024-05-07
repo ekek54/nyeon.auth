@@ -66,9 +66,4 @@ public class SocialLoginConfig {
     public SecurityContextRepository securityContextRepository() {
         return new JWTCookieSecurityContextRepository(jwtEncoder, jwtDecoder);
     }
-
-//    @Bean
-//    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-//        return new CustomAuthenticationSuccessHandler(jwtEncoder, cookieRequestCache());
-//    }
 }

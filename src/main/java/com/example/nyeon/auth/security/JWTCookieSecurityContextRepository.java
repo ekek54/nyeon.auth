@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.boot.web.server.Cookie.SameSite;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
@@ -45,7 +46,7 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
             //Empty context
             return context;
         }
-        JwtAuthenticationToken authentication = new JwtAuthenticationToken(contextJwt);
+        JwtAuthenticationToken authentication = new JwtAuthenticationToken(contextJwt, List.of(UserRole.ROLE_USER));
         context.setAuthentication(authentication);
         return context;
     }
