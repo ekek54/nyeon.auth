@@ -47,6 +47,7 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
             return context;
         }
         JwtAuthenticationToken authentication = new JwtAuthenticationToken(contextJwt, List.of(UserRole.ROLE_USER));
+        authentication.setAuthenticated(true);
         context.setAuthentication(authentication);
         return context;
     }
