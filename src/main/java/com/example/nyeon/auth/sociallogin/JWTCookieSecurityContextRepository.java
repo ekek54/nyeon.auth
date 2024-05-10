@@ -64,14 +64,14 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
             removeCookie(request, response);
             return;
         }
-        Jwt jwt = buildJwt(context);
-        Cookie cookie = buildJwtCookie(jwt, request);
-        response.addCookie(cookie);
+        if (context.getAuthentication().getPrincipal() instanceof OAuth2User principal) {
+            Jwt jwt = buildJwt(principal.getName());
+            Cookie cookie = buildJwtCookie(jwt, request);
+            response.addCookie(cookie);
+        }
     }
 
-    private Jwt buildJwt(SecurityContext context) {
-        OAuth2User principal = (OAuth2User) context.getAuthentication().getPrincipal();
-        String userUUID = principal.getName();
+    private Jwt buildJwt(String userUUID) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(userUUID)
                 .expiresAt(Instant.now().plus(CONTEXT_COOKIE_EXPIRY))
