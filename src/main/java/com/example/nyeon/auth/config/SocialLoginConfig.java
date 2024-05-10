@@ -21,10 +21,10 @@ import org.springframework.security.web.savedrequest.RequestCache;
 @EnableWebSecurity
 public class SocialLoginConfig {
     @Autowired
-    private JwtEncoder jwtEncoder;
+    private RequestCache cookieRequestCache;
 
     @Autowired
-    private JwtDecoder jwtDecoder;
+    private SecurityContextRepository securityContextRepository;
 
     @Bean
     @Order(2)
@@ -43,9 +43,9 @@ public class SocialLoginConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 ).csrf(AbstractHttpConfigurer::disable)
                 .requestCache(requestCache -> requestCache
-                        .requestCache(cookieRequestCache())
+                        .requestCache(cookieRequestCache)
                 ).securityContext(securityContext -> securityContext
-                        .securityContextRepository(securityContextRepository())
+                        .securityContextRepository(securityContextRepository)
                 );
         return http.build();
     }
@@ -53,15 +53,5 @@ public class SocialLoginConfig {
     @Bean
     public StatelessOAuth2AuthorizationRequestRepository authorizationRequestRepository() {
         return new StatelessOAuth2AuthorizationRequestRepository();
-    }
-
-    @Bean
-    public RequestCache cookieRequestCache() {
-        return new CookieRequestCache();
-    }
-
-    @Bean
-    public SecurityContextRepository securityContextRepository() {
-        return new JWTCookieSecurityContextRepository(jwtEncoder, jwtDecoder);
     }
 }
