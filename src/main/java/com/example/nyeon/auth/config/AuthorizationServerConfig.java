@@ -1,5 +1,6 @@
 package com.example.nyeon.auth.config;
 
+import com.example.nyeon.auth.authorization.OidcUserInfoMapper;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,13 +31,19 @@ public class AuthorizationServerConfig {
     @Autowired
     private JwtDecoder jwtDecoder;
 
+    @Autowired
+    private OidcUserInfoMapper oidcUserInfoMapper;
+
     @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         // @formatter:off
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         OAuth2AuthorizationServerConfigurer configurer = http.getConfigurer(OAuth2AuthorizationServerConfigurer.class);
-        configurer.oidc(Customizer.withDefaults());
+        configurer.oidc(oidc -> oidc
+                .userInfoEndpoint(userInfo -> userInfo
+                        .userInfoMapper(oidcUserInfoMapper)
+                ));
 
         http
                 .exceptionHandling((exceptions) -> exceptions
