@@ -20,10 +20,4 @@ public class PKCEClientAuthenticationToken extends OAuth2ClientAuthenticationTok
             ClientAuthenticationMethod clientAuthenticationMethod, Object credentials) {
         super(registeredClient, clientAuthenticationMethod, credentials);
     }
-
-    @Override
-    public Object getPrincipal() {
-        System.out.println("PKCEClientAuthenticationToken.getPrincipal()");
-        return super.getPrincipal();
-    }
 }
