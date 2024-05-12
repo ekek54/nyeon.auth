@@ -15,18 +15,22 @@ import org.springframework.util.StringUtils;
 
 public class PKCEClientAuthenticationConverter implements AuthenticationConverter {
     private final RequestMatcher pkceTokenIntrospectionEndpointMatcher;
+    private final RequestMatcher pkceTokenRevocationEndpointMatcher;
 
-    public PKCEClientAuthenticationConverter(String tokenIntrospectionEndpointUri) {
+    public PKCEClientAuthenticationConverter(String tokenIntrospectionEndpointUri, String tokenRevocationEndpointUri) {
         RequestMatcher clientIdParameterMatcher = request ->
                 request.getParameter(OAuth2ParameterNames.CLIENT_ID) != null;
         this.pkceTokenIntrospectionEndpointMatcher = new AndRequestMatcher(
                 clientIdParameterMatcher,
                 new AntPathRequestMatcher(tokenIntrospectionEndpointUri, HttpMethod.POST.name()));
+        this.pkceTokenRevocationEndpointMatcher = new AndRequestMatcher(
+                clientIdParameterMatcher,
+                new AntPathRequestMatcher(tokenRevocationEndpointUri, HttpMethod.POST.name()));
     }
 
     @Override
     public Authentication convert(HttpServletRequest request) {
-        if (!this.pkceTokenIntrospectionEndpointMatcher.matches(request)) {
+        if (isNotMatched(request)) {
             return null;
         }
 
@@ -37,5 +41,10 @@ public class PKCEClientAuthenticationConverter implements AuthenticationConverte
         }
 
         return new PKCEClientAuthenticationToken(clientId, ClientAuthenticationMethod.NONE, null, null);
+    }
+
+    private boolean isNotMatched(HttpServletRequest request) {
+        return !this.pkceTokenIntrospectionEndpointMatcher.matches(request)
+                && !this.pkceTokenRevocationEndpointMatcher.matches(request);
     }
 }

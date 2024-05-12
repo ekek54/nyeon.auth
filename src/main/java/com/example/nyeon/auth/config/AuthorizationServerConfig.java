@@ -49,7 +49,10 @@ public class AuthorizationServerConfig {
         OAuth2AuthorizationServerConfigurer configurer = http.getConfigurer(OAuth2AuthorizationServerConfigurer.class);
 
         PKCEClientAuthenticationConverter pkceClientAuthenticationConverter =
-                new PKCEClientAuthenticationConverter(authorizationServerSettings().getTokenIntrospectionEndpoint());
+                new PKCEClientAuthenticationConverter(
+                        authorizationServerSettings().getTokenIntrospectionEndpoint(),
+                        authorizationServerSettings().getTokenRevocationEndpoint()
+                );
         PKCEClientAuthenticationProvider pkceClientAuthenticationProvider =
                 new PKCEClientAuthenticationProvider(registeredClientRepository);
 
