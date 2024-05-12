@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.security;
+package com.example.nyeon.auth.sociallogin;
 
 import com.example.nyeon.auth.util.CookieUtil;
 import jakarta.servlet.http.Cookie;
@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.boot.web.server.Cookie.SameSite;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 
 public class JWTCookieSecurityContextRepository implements SecurityContextRepository {
@@ -30,24 +34,39 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
     private final JwtDecoder jwtDecoder;
     private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
             .getContextHolderStrategy();
+    private final RequestMatcher authorizationEndpointMatcher;
 
-    public JWTCookieSecurityContextRepository(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+    public JWTCookieSecurityContextRepository(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder,
+                                              String authorizationEndpointUri) {
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
+        RequestMatcher resourceOwnerContextMatcher = request -> retrieveContextJWT(request) != null;
+        this.authorizationEndpointMatcher =
+                new AndRequestMatcher(
+                    resourceOwnerContextMatcher,
+                    new AntPathRequestMatcher(authorizationEndpointUri,
+                    HttpMethod.GET.name()
+                )
+        );
     }
 
     @Override
     @Deprecated
     public SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
         HttpServletRequest request = requestResponseHolder.getRequest();
-        Jwt contextJwt = retrieveContextJWT(request);
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
+        if (!authorizationEndpointMatcher.matches(request)) {
+            return securityContextHolderStrategy.createEmptyContext();
+        }
+        Jwt contextJwt = retrieveContextJWT(request);
         if (contextJwt == null) {
             //Empty context
             return context;
         }
         JwtAuthenticationToken authentication = new JwtAuthenticationToken(contextJwt, List.of(UserRole.ROLE_USER));
+        authentication.setAuthenticated(true);
         context.setAuthentication(authentication);
+        System.out.println("context: " + context + "@@@@@@@@@@@@@@@@loaded@@@@@@@@@@@@");
         return context;
     }
 
@@ -63,14 +82,14 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
             removeCookie(request, response);
             return;
         }
-        Jwt jwt = buildJwt(context);
-        Cookie cookie = buildJwtCookie(jwt, request);
-        response.addCookie(cookie);
+        if (context.getAuthentication().getPrincipal() instanceof OAuth2User principal) {
+            Jwt jwt = buildJwt(principal.getName());
+            Cookie cookie = buildJwtCookie(jwt, request);
+            response.addCookie(cookie);
+        }
     }
 
-    private Jwt buildJwt(SecurityContext context) {
-        OAuth2User principal = (OAuth2User) context.getAuthentication().getPrincipal();
-        String userUUID = principal.getName();
+    private Jwt buildJwt(String userUUID) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(userUUID)
                 .expiresAt(Instant.now().plus(CONTEXT_COOKIE_EXPIRY))
@@ -81,7 +100,7 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
 
     @Override
     public boolean containsContext(HttpServletRequest request) {
-        return retrieveContextJWT(request) != null;
+        return authorizationEndpointMatcher.matches(request);
     }
 
     private Jwt retrieveContextJWT(HttpServletRequest request) {

@@ -1,7 +1,7 @@
-package com.example.nyeon.auth.security.userservice;
+package com.example.nyeon.auth.sociallogin.userservice;
 
 import com.example.nyeon.auth.exception.BadRequestException;
-import com.example.nyeon.auth.security.principal.OidcUserPrincipal;
+import com.example.nyeon.auth.sociallogin.principal.OidcUserPrincipal;
 import com.example.nyeon.auth.user.User;
 import com.example.nyeon.auth.user.UserRepository;
 import java.util.Map;

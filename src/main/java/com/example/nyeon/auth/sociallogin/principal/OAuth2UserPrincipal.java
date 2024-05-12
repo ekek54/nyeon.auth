@@ -1,12 +1,11 @@
-package com.example.nyeon.auth.security.principal;
+package com.example.nyeon.auth.sociallogin.principal;
 
-import com.example.nyeon.auth.security.UserRole;
+import com.example.nyeon.auth.sociallogin.UserRole;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import com.example.nyeon.auth.user.User;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 @Getter

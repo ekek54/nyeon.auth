@@ -1,20 +1,17 @@
-package com.example.nyeon.auth.security;
+package com.example.nyeon.auth.sociallogin;
 
 import com.example.nyeon.auth.util.CookieUtil;
 import com.example.nyeon.auth.util.EncryptionUtil;
 import com.example.nyeon.auth.util.SerializeUtil;
-import com.nimbusds.jose.shaded.gson.Gson;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.Base64;
 import javax.crypto.SecretKey;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.Assert;
-import org.springframework.util.SerializationUtils;
 
 /**
  * 참고 문서: https://www.jessym.com/articles/stateless-oauth2-social-logins-with-spring-boot
