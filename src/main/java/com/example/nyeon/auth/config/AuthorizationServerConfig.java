@@ -4,6 +4,7 @@ import com.example.nyeon.auth.authorization.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationProvider;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,18 +29,15 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class AuthorizationServerConfig {
-    @Autowired
-    private JwtEncoder jwtEncoder;
+    private final JwtEncoder jwtEncoder;
 
-    @Autowired
-    private JwtDecoder jwtDecoder;
+    private final JwtDecoder jwtDecoder;
 
-    @Autowired
-    private OidcUserInfoMapper oidcUserInfoMapper;
+    private final OidcUserInfoMapper oidcUserInfoMapper;
 
-    @Autowired
-    private RegisteredClientRepository registeredClientRepository;
+    private final RegisteredClientRepository registeredClientRepository;
 
     @Bean
     @Order(1)
