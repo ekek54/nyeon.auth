@@ -2,7 +2,7 @@
 
 **목적**
 * 반복적인 소셜 로그인 기능 구현 대체
-* OAuth 2.1 프로토콜을 준수하여 SPA 환경(Public Client)의 인증/인가 Best Practice 적용
+* OAuth 2.1 프로토콜을 준수하여 SPA 환경(Public Client)의 인증/인가 [Best Practice](https://curity.io/resources/learn/spa-best-practices/) 적용
 * 정해진 클라이언트만 리소스에 접근할 수 있도록 제한
 
 **기능**
