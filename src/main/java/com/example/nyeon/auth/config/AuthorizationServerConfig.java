@@ -5,7 +5,6 @@ import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthent
 import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationProvider;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
