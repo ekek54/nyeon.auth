@@ -4,21 +4,31 @@ import com.example.nyeon.auth.authorization.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationProvider;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
+import java.util.Set;
+import java.util.UUID;
+import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -36,7 +46,7 @@ public class AuthorizationServerConfig {
 
     private final OidcUserInfoMapper oidcUserInfoMapper;
 
-    private final RegisteredClientRepository registeredClientRepository;
+    private final DataSource dataSource;
 
     @Bean
     @Order(1)
@@ -51,7 +61,7 @@ public class AuthorizationServerConfig {
                         authorizationServerSettings().getTokenRevocationEndpoint()
                 );
         PKCEClientAuthenticationProvider pkceClientAuthenticationProvider =
-                new PKCEClientAuthenticationProvider(registeredClientRepository);
+                new PKCEClientAuthenticationProvider(registeredClientRepository());
 
         configurer
                 .oidc(oidc -> oidc
@@ -101,5 +111,34 @@ public class AuthorizationServerConfig {
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
+    }
+
+    @Bean
+    public RegisteredClientRepository registeredClientRepository() {
+        return new JdbcRegisteredClientRepository(new JdbcTemplate(dataSource));
+    }
+
+    @Bean
+    ApplicationRunner clientRunner(RegisteredClientRepository registeredClientRepository) {
+        return args -> {
+            String clientTd = "postman";
+            if (registeredClientRepository.findByClientId(clientTd) == null) {
+                registeredClientRepository.save(RegisteredClient
+                        .withId(UUID.randomUUID().toString())
+                        .clientId(clientTd)
+                        .clientSecret("{noop}secrete")
+                        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                        .redirectUri("https://oauth.pstmn.io/v1/callback")
+                        .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                        .clientSettings(ClientSettings.builder()
+                                .requireProofKey(true)
+                                .requireAuthorizationConsent(false)
+                                .build()
+                        ).scopes(scopes -> scopes
+                                .addAll(Set.of("openid", "profile", "email"))
+                        ).build()
+                );
+            }
+        };
     }
 }
