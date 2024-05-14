@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.server.Cookie.SameSite;
@@ -16,12 +17,13 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
@@ -45,10 +47,10 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
         this.jwtDecoder = jwtDecoder;
         this.authorizationEndpointMatcher =
                 new AndRequestMatcher(
-                    new AntPathRequestMatcher(authorizationEndpointUri,
-                    HttpMethod.GET.name()
-                )
-        );
+                        new AntPathRequestMatcher(authorizationEndpointUri,
+                                HttpMethod.GET.name()
+                        )
+                );
     }
 
     @Override
@@ -61,8 +63,9 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
         }
         try {
             Jwt decodeJwt = jwtDecoder.decode(contextJWT.get());
-            JwtAuthenticationToken authentication = new JwtAuthenticationToken(decodeJwt, List.of(UserRole.ROLE_USER));
-            authentication.setAuthenticated(true);
+            String userUUID = decodeJwt.getSubject();
+            PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
+                    userUUID, null, List.of(new OAuth2UserAuthority(Map.of("name", userUUID))));
             SecurityContext context = securityContextHolderStrategy.createEmptyContext();
             context.setAuthentication(authentication);
             return context;
