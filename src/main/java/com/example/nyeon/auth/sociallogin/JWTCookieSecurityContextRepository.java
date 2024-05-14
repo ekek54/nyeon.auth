@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.server.Cookie.SameSite;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.context.DeferredSecurityContext;
@@ -27,6 +29,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 
+@Slf4j
 public class JWTCookieSecurityContextRepository implements SecurityContextRepository {
     private static final Duration CONTEXT_COOKIE_EXPIRY = Duration.ofHours(1);
     private static final String CONTEXT_COOKIE_NAME = "ROC"; // Resource Owner Context
@@ -40,10 +43,8 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
                                               String authorizationEndpointUri) {
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
-        RequestMatcher resourceOwnerContextMatcher = request -> retrieveContextJWT(request) != null;
         this.authorizationEndpointMatcher =
                 new AndRequestMatcher(
-                    resourceOwnerContextMatcher,
                     new AntPathRequestMatcher(authorizationEndpointUri,
                     HttpMethod.GET.name()
                 )
@@ -54,19 +55,22 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
     @Deprecated
     public SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
         HttpServletRequest request = requestResponseHolder.getRequest();
-        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
-        if (!authorizationEndpointMatcher.matches(request)) {
+        Optional<String> contextJWT = retrieveContextJWT(request);
+        if (!authorizationEndpointMatcher.matches(request) || contextJWT.isEmpty()) {
             return securityContextHolderStrategy.createEmptyContext();
         }
-        Jwt contextJwt = retrieveContextJWT(request);
-        if (contextJwt == null) {
-            //Empty context
+        try {
+            Jwt decodeJwt = jwtDecoder.decode(contextJWT.get());
+            JwtAuthenticationToken authentication = new JwtAuthenticationToken(decodeJwt, List.of(UserRole.ROLE_USER));
+            authentication.setAuthenticated(true);
+            SecurityContext context = securityContextHolderStrategy.createEmptyContext();
+            context.setAuthentication(authentication);
             return context;
+        } catch (Exception e) {
+            //empty context
+            log.error("Failed to decode JWT", e);
+            return securityContextHolderStrategy.createEmptyContext();
         }
-        JwtAuthenticationToken authentication = new JwtAuthenticationToken(contextJwt, List.of(UserRole.ROLE_USER));
-        authentication.setAuthenticated(true);
-        context.setAuthentication(authentication);
-        return context;
     }
 
 
@@ -99,12 +103,11 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
 
     @Override
     public boolean containsContext(HttpServletRequest request) {
-        return authorizationEndpointMatcher.matches(request);
+        return authorizationEndpointMatcher.matches(request) && retrieveContextJWT(request).isPresent();
     }
 
-    private Jwt retrieveContextJWT(HttpServletRequest request) {
-        return CookieUtil.retrieve(request.getCookies(), CONTEXT_COOKIE_NAME)
-                .map(jwtDecoder::decode).orElse(null);
+    private Optional<String> retrieveContextJWT(HttpServletRequest request) {
+        return CookieUtil.retrieve(request.getCookies(), CONTEXT_COOKIE_NAME);
     }
 
     private Cookie buildJwtCookie(Jwt jwt, HttpServletRequest request) {
@@ -130,4 +133,5 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
                 .httpOnly(true)
                 .build();
     }
+
 }
