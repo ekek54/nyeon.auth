@@ -92,6 +92,11 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
         }
     }
 
+    @Override
+    public boolean containsContext(HttpServletRequest request) {
+        return authorizationEndpointMatcher.matches(request) && retrieveContextJWT(request).isPresent();
+    }
+
     private Jwt buildJwt(String userUUID) {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(userUUID)
@@ -99,11 +104,6 @@ public class JWTCookieSecurityContextRepository implements SecurityContextReposi
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims));
-    }
-
-    @Override
-    public boolean containsContext(HttpServletRequest request) {
-        return authorizationEndpointMatcher.matches(request) && retrieveContextJWT(request).isPresent();
     }
 
     private Optional<String> retrieveContextJWT(HttpServletRequest request) {
