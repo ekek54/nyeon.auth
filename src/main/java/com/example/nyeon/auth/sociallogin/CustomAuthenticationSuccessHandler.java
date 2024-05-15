@@ -49,7 +49,6 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         attachJwtCookie(request, response, jwt);
         String targetUrl = savedRequest.getRedirectUrl();
         requestCache.removeRequest(request, response);
-        System.out.println("Redirecting to: " + targetUrl);
         this.getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
