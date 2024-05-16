@@ -2,6 +2,7 @@ package com.example.nyeon.auth.config;
 
 import com.example.nyeon.auth.sociallogin.StatelessOAuth2AuthorizationRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,6 +21,9 @@ public class SocialLoginConfig {
     private final RequestCache cookieRequestCache;
 
     private final SecurityContextRepository securityContextRepository;
+
+    @Value("${state.secret}")
+    private String stateSecret;
 
     @Bean
     @Order(2)
@@ -47,6 +51,6 @@ public class SocialLoginConfig {
 
     @Bean
     public StatelessOAuth2AuthorizationRequestRepository authorizationRequestRepository() {
-        return new StatelessOAuth2AuthorizationRequestRepository();
+        return new StatelessOAuth2AuthorizationRequestRepository(stateSecret.toCharArray());
     }
 }
