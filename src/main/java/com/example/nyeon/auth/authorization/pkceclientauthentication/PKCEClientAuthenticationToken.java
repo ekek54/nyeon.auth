@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.authorization.tokenintrospection;
+package com.example.nyeon.auth.authorization.pkceclientauthentication;
 
 import java.util.Map;
 import org.springframework.lang.Nullable;

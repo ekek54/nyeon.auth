@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.authorization;
+package com.example.nyeon.auth.authorization.oidcuserinfo;
 
 import com.example.nyeon.auth.exception.UserNotFoundException;
 import com.example.nyeon.auth.user.User;

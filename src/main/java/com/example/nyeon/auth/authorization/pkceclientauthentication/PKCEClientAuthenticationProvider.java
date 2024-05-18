@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.authorization.tokenintrospection;
+package com.example.nyeon.auth.authorization.pkceclientauthentication;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;

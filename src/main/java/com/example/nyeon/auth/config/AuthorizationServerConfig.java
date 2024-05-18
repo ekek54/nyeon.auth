@@ -1,8 +1,8 @@
 package com.example.nyeon.auth.config;
 
-import com.example.nyeon.auth.authorization.OidcUserInfoMapper;
-import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationConverter;
-import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationProvider;
+import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
+import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
+import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import java.util.Set;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.authorization.tokenintrospection;
+package com.example.nyeon.auth.authorization.pkceclientauthentication;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;

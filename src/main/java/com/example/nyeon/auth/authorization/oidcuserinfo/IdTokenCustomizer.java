@@ -1,4 +1,4 @@
-package com.example.nyeon.auth.authorization;
+package com.example.nyeon.auth.authorization.oidcuserinfo;
 
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
