@@ -36,6 +36,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
@@ -153,6 +154,7 @@ public class AuthorizationServerConfig {
         return args -> {
             String clientTd = "postman";
             if (registeredClientRepository.findByClientId(clientTd) == null) {
+                TokenSettings refreshRotateSetting = TokenSettings.builder().reuseRefreshTokens(false).build();
                 registeredClientRepository.save(RegisteredClient
                         .withId(UUID.randomUUID().toString())
                         .clientId(clientTd)
@@ -167,7 +169,8 @@ public class AuthorizationServerConfig {
                                 .build()
                         ).scopes(scopes -> scopes
                                 .addAll(Set.of("openid", "profile", "email"))
-                        ).build()
+                        ).tokenSettings(refreshRotateSetting)
+                        .build()
                 );
             }
         };
