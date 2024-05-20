@@ -1,8 +1,10 @@
 package com.example.nyeon.auth.config;
 
+import com.example.nyeon.auth.authorization.oidcuserinfo.IdTokenCustomizer;
 import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
+import com.example.nyeon.auth.authorization.refreshtoken.CustomRefreshTokenGenerator;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import java.util.Set;
 import java.util.UUID;
@@ -20,10 +22,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationCodeAuthenticationProvider;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -31,6 +36,12 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenEndpointFilter;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -50,6 +61,8 @@ public class AuthorizationServerConfig {
 
     private final DataSource dataSource;
 
+    private final IdTokenCustomizer idTokenGenerator;
+
     @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -59,7 +72,8 @@ public class AuthorizationServerConfig {
         PKCEClientAuthenticationConverter pkceClientAuthenticationConverter =
                 new PKCEClientAuthenticationConverter(
                         authorizationServerSettings().getTokenIntrospectionEndpoint(),
-                        authorizationServerSettings().getTokenRevocationEndpoint()
+                        authorizationServerSettings().getTokenRevocationEndpoint(),
+                        authorizationServerSettings().getTokenEndpoint()
                 );
         PKCEClientAuthenticationProvider pkceClientAuthenticationProvider =
                 new PKCEClientAuthenticationProvider(registeredClientRepository());
@@ -111,6 +125,14 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
+    public OAuth2TokenGenerator<?> tokenGenerator() {
+        JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
+        jwtGenerator.setJwtCustomizer(idTokenGenerator);
+        OAuth2TokenGenerator<OAuth2RefreshToken> refreshTokenGenerator = new CustomRefreshTokenGenerator();
+        return new DelegatingOAuth2TokenGenerator(jwtGenerator, refreshTokenGenerator);
+    }
+
+    @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
     }
@@ -136,6 +158,7 @@ public class AuthorizationServerConfig {
                         .clientId(clientTd)
                         .clientSecret("{noop}secrete")
                         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                         .redirectUri("https://oauth.pstmn.io/v1/callback")
                         .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                         .clientSettings(ClientSettings.builder()
