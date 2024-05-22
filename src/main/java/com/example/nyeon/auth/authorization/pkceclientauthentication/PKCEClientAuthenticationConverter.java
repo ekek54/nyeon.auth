@@ -1,8 +1,9 @@
-package com.example.nyeon.auth.authorization.tokenintrospection;
+package com.example.nyeon.auth.authorization.pkceclientauthentication;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -16,8 +17,10 @@ import org.springframework.util.StringUtils;
 public class PKCEClientAuthenticationConverter implements AuthenticationConverter {
     private final RequestMatcher pkceTokenIntrospectionEndpointMatcher;
     private final RequestMatcher pkceTokenRevocationEndpointMatcher;
+    private final RequestMatcher pkceTokenRefreshEndpointMatcher;
 
-    public PKCEClientAuthenticationConverter(String tokenIntrospectionEndpointUri, String tokenRevocationEndpointUri) {
+    public PKCEClientAuthenticationConverter(String tokenIntrospectionEndpointUri, String tokenRevocationEndpointUri,
+                                             String tokenEndpointUri) {
         RequestMatcher clientIdParameterMatcher = request ->
                 request.getParameter(OAuth2ParameterNames.CLIENT_ID) != null;
         this.pkceTokenIntrospectionEndpointMatcher = new AndRequestMatcher(
@@ -26,6 +29,15 @@ public class PKCEClientAuthenticationConverter implements AuthenticationConverte
         this.pkceTokenRevocationEndpointMatcher = new AndRequestMatcher(
                 clientIdParameterMatcher,
                 new AntPathRequestMatcher(tokenRevocationEndpointUri, HttpMethod.POST.name()));
+
+        RequestMatcher refreshTokenGrantTypeMatcher = request ->
+                AuthorizationGrantType.REFRESH_TOKEN.getValue()
+                        .equals(request.getParameter(OAuth2ParameterNames.GRANT_TYPE));
+        this.pkceTokenRefreshEndpointMatcher = new AndRequestMatcher(
+                clientIdParameterMatcher,
+                refreshTokenGrantTypeMatcher,
+                new AntPathRequestMatcher(tokenEndpointUri, HttpMethod.POST.name())
+        );
     }
 
     @Override
@@ -33,7 +45,6 @@ public class PKCEClientAuthenticationConverter implements AuthenticationConverte
         if (isNotMatched(request)) {
             return null;
         }
-
         String clientId = request.getParameter(OAuth2ParameterNames.CLIENT_ID);
         if (!StringUtils.hasText(clientId) ||
                 request.getParameterValues(OAuth2ParameterNames.CLIENT_ID).length != 1) {
@@ -45,6 +56,7 @@ public class PKCEClientAuthenticationConverter implements AuthenticationConverte
 
     private boolean isNotMatched(HttpServletRequest request) {
         return !this.pkceTokenIntrospectionEndpointMatcher.matches(request)
-                && !this.pkceTokenRevocationEndpointMatcher.matches(request);
+                && !this.pkceTokenRevocationEndpointMatcher.matches(request)
+                && !this.pkceTokenRefreshEndpointMatcher.matches(request);
     }
 }

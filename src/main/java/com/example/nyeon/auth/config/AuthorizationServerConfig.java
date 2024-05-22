@@ -1,8 +1,12 @@
 package com.example.nyeon.auth.config;
 
-import com.example.nyeon.auth.authorization.OidcUserInfoMapper;
-import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationConverter;
-import com.example.nyeon.auth.authorization.tokenintrospection.PKCEClientAuthenticationProvider;
+import com.example.nyeon.auth.authorization.oidcuserinfo.IdTokenCustomizer;
+import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
+import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
+import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
+import com.example.nyeon.auth.authorization.refreshtoken.CookieRefreshTokenAuthenticationConverter;
+import com.example.nyeon.auth.authorization.refreshtoken.CustomTokenResponseHandler;
+import com.example.nyeon.auth.authorization.refreshtoken.PublicClientRefreshTokenGenerator;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +24,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
@@ -31,7 +36,12 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.CookieRequestCache;
@@ -50,6 +60,8 @@ public class AuthorizationServerConfig {
 
     private final DataSource dataSource;
 
+    private final IdTokenCustomizer idTokenGenerator;
+
     @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -59,7 +71,8 @@ public class AuthorizationServerConfig {
         PKCEClientAuthenticationConverter pkceClientAuthenticationConverter =
                 new PKCEClientAuthenticationConverter(
                         authorizationServerSettings().getTokenIntrospectionEndpoint(),
-                        authorizationServerSettings().getTokenRevocationEndpoint()
+                        authorizationServerSettings().getTokenRevocationEndpoint(),
+                        authorizationServerSettings().getTokenEndpoint()
                 );
         PKCEClientAuthenticationProvider pkceClientAuthenticationProvider =
                 new PKCEClientAuthenticationProvider(registeredClientRepository());
@@ -72,8 +85,12 @@ public class AuthorizationServerConfig {
                 ).clientAuthentication(clientAuthentication -> clientAuthentication
                     .authenticationConverter(pkceClientAuthenticationConverter)
                     .authenticationProvider(pkceClientAuthenticationProvider)
-                ).authorizationService(authorizationService())
-        ;
+                ).authorizationService(authorizationService()
+                ).tokenEndpoint(token -> token
+                    .accessTokenRequestConverter(
+                        new CookieRefreshTokenAuthenticationConverter()
+                    ).accessTokenResponseHandler(tokenResponseHandler())
+                );
 
         http
                 .exceptionHandling((exceptions) -> exceptions
@@ -111,6 +128,14 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
+    public OAuth2TokenGenerator<?> tokenGenerator() {
+        JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
+        jwtGenerator.setJwtCustomizer(idTokenGenerator);
+        OAuth2TokenGenerator<OAuth2RefreshToken> refreshTokenGenerator = new PublicClientRefreshTokenGenerator();
+        return new DelegatingOAuth2TokenGenerator(jwtGenerator, refreshTokenGenerator);
+    }
+
+    @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
     }
@@ -127,15 +152,22 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
+    AuthenticationSuccessHandler tokenResponseHandler() {
+        return new CustomTokenResponseHandler();
+    }
+
+    @Bean
     ApplicationRunner clientRunner(RegisteredClientRepository registeredClientRepository) {
         return args -> {
             String clientTd = "postman";
             if (registeredClientRepository.findByClientId(clientTd) == null) {
+                TokenSettings refreshRotateSetting = TokenSettings.builder().reuseRefreshTokens(false).build();
                 registeredClientRepository.save(RegisteredClient
                         .withId(UUID.randomUUID().toString())
                         .clientId(clientTd)
                         .clientSecret("{noop}secrete")
                         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                         .redirectUri("https://oauth.pstmn.io/v1/callback")
                         .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                         .clientSettings(ClientSettings.builder()
@@ -144,7 +176,8 @@ public class AuthorizationServerConfig {
                                 .build()
                         ).scopes(scopes -> scopes
                                 .addAll(Set.of("openid", "profile", "email"))
-                        ).build()
+                        ).tokenSettings(refreshRotateSetting)
+                        .build()
                 );
             }
         };
