@@ -4,8 +4,9 @@ import com.example.nyeon.auth.authorization.oidcuserinfo.IdTokenCustomizer;
 import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
-import com.example.nyeon.auth.authorization.refreshtoken.PublicClientRefreshTokenGenerator;
+import com.example.nyeon.auth.authorization.refreshtoken.CookieRefreshTokenAuthenticationConverter;
 import com.example.nyeon.auth.authorization.refreshtoken.CustomTokenResponseHandler;
+import com.example.nyeon.auth.authorization.refreshtoken.PublicClientRefreshTokenGenerator;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import java.util.Set;
 import java.util.UUID;
@@ -39,7 +40,6 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -87,7 +87,9 @@ public class AuthorizationServerConfig {
                     .authenticationProvider(pkceClientAuthenticationProvider)
                 ).authorizationService(authorizationService()
                 ).tokenEndpoint(token -> token
-                    .accessTokenResponseHandler(tokenResponseHandler())
+                    .accessTokenRequestConverter(
+                        new CookieRefreshTokenAuthenticationConverter()
+                    ).accessTokenResponseHandler(tokenResponseHandler())
                 );
 
         http

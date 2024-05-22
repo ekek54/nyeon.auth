@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AccessTokenAuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -61,7 +62,7 @@ public class CustomTokenResponseHandler implements AuthenticationSuccessHandler 
     private Cookie buildRefreshTokenCookie(OAuth2RefreshToken refreshToken, Duration refreshTokenTimeToLive,
                                            HttpServletRequest request) {
         return CookieUtil.cookieBuilder(request)
-                .name("refresh_token")
+                .name(OAuth2ParameterNames.REFRESH_TOKEN)
                 .value(refreshToken.getTokenValue())
                 .maxAge(refreshTokenTimeToLive)
                 .httpOnly(true)
