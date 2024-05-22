@@ -5,6 +5,7 @@ import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
 import com.example.nyeon.auth.authorization.refreshtoken.CustomRefreshTokenGenerator;
+import com.example.nyeon.auth.authorization.refreshtoken.CustomTokenResponseHandler;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import java.util.Set;
 import java.util.UUID;
@@ -27,8 +28,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationCodeAuthenticationProvider;
-import org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -38,12 +37,10 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenEndpointFilter;
-import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.CookieRequestCache;
@@ -87,8 +84,10 @@ public class AuthorizationServerConfig {
                 ).clientAuthentication(clientAuthentication -> clientAuthentication
                     .authenticationConverter(pkceClientAuthenticationConverter)
                     .authenticationProvider(pkceClientAuthenticationProvider)
-                ).authorizationService(authorizationService())
-        ;
+                ).authorizationService(authorizationService()
+                ).tokenEndpoint(token -> token
+                    .accessTokenResponseHandler(tokenResponseHandler())
+                );
 
         http
                 .exceptionHandling((exceptions) -> exceptions
@@ -147,6 +146,11 @@ public class AuthorizationServerConfig {
     OAuth2AuthorizationService authorizationService() {
         return new JdbcOAuth2AuthorizationService(
                 new JdbcTemplate(dataSource), registeredClientRepository());
+    }
+
+    @Bean
+    AuthenticationSuccessHandler tokenResponseHandler() {
+        return new CustomTokenResponseHandler();
     }
 
     @Bean
