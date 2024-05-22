@@ -4,7 +4,7 @@ import com.example.nyeon.auth.authorization.oidcuserinfo.IdTokenCustomizer;
 import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
-import com.example.nyeon.auth.authorization.refreshtoken.CustomRefreshTokenGenerator;
+import com.example.nyeon.auth.authorization.refreshtoken.PublicClientRefreshTokenGenerator;
 import com.example.nyeon.auth.authorization.refreshtoken.CustomTokenResponseHandler;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
 import java.util.Set;
@@ -39,6 +39,7 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2RefreshTokenAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -128,7 +129,7 @@ public class AuthorizationServerConfig {
     public OAuth2TokenGenerator<?> tokenGenerator() {
         JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
         jwtGenerator.setJwtCustomizer(idTokenGenerator);
-        OAuth2TokenGenerator<OAuth2RefreshToken> refreshTokenGenerator = new CustomRefreshTokenGenerator();
+        OAuth2TokenGenerator<OAuth2RefreshToken> refreshTokenGenerator = new PublicClientRefreshTokenGenerator();
         return new DelegatingOAuth2TokenGenerator(jwtGenerator, refreshTokenGenerator);
     }
 

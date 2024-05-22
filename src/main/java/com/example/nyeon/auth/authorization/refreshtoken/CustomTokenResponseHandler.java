@@ -20,6 +20,10 @@ import org.springframework.security.oauth2.server.authorization.authentication.O
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * This class is a custom implementation of the AuthenticationSuccessHandler interface.
+ * It has been modified to issue the RefreshToken as a http-only cookie.
+ */
 public class CustomTokenResponseHandler implements AuthenticationSuccessHandler {
     private final HttpMessageConverter<OAuth2AccessTokenResponse> accessTokenHttpResponseConverter =
             new OAuth2AccessTokenResponseHttpMessageConverter();
@@ -41,7 +45,6 @@ public class CustomTokenResponseHandler implements AuthenticationSuccessHandler 
             builder.expiresIn(ChronoUnit.SECONDS.between(accessToken.getIssuedAt(), accessToken.getExpiresAt()));
         }
         if (refreshToken != null) {
-            //TODO: refresh token Http-Only-Cookie 설정
             Duration refreshTokenTimeToLive = accessTokenAuthentication.getRegisteredClient().getTokenSettings()
                     .getRefreshTokenTimeToLive();
             Cookie refreshTokenCookie = buildRefreshTokenCookie(refreshToken, refreshTokenTimeToLive, request);
