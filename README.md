@@ -11,7 +11,7 @@
   * Authorization Code 탈취 공격 방지
 * OIDC 지원-id 토큰으로 api 호출 없이 사용자 정보 제공
 * [Protocol Endpoint](https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html)
-* [API 명세서](https://documenter.getpostman.com/view/23672162/2sA3QwaUVf)
+* [API 명세서](https://documenter.getpostman.com/view/23672162/2sAYBUCrsS)
 
 **기술 스택**
 * Java 17
