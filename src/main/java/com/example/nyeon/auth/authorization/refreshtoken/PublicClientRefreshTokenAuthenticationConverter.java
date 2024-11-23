@@ -22,8 +22,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-public class CookieRefreshTokenAuthenticationConverter implements AuthenticationConverter {
+public class PublicClientRefreshTokenAuthenticationConverter implements AuthenticationConverter {
     static final String ACCESS_TOKEN_REQUEST_ERROR_URI = "https://datatracker.ietf.org/doc/html/rfc6749#section-5.2";
+
     @Nullable
     @Override
     public Authentication convert(HttpServletRequest request) {
@@ -36,8 +37,6 @@ public class CookieRefreshTokenAuthenticationConverter implements Authentication
             return null;
         }
 
-        Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
         // refresh_token (REQUIRED)
         String refreshToken = retrieveRefreshToken(request).orElseThrow(() -> {
             throwError(
@@ -45,8 +44,8 @@ public class CookieRefreshTokenAuthenticationConverter implements Authentication
             );
             return null;
         });
-        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        System.out.println(refreshToken);
+
+        Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
 
         // scope (OPTIONAL)
         String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
@@ -96,7 +95,7 @@ public class CookieRefreshTokenAuthenticationConverter implements Authentication
 
     private void throwError(String parameterName) {
         OAuth2Error error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST, "OAuth 2.0 Parameter: " + parameterName,
-                CookieRefreshTokenAuthenticationConverter.ACCESS_TOKEN_REQUEST_ERROR_URI);
+                PublicClientRefreshTokenAuthenticationConverter.ACCESS_TOKEN_REQUEST_ERROR_URI);
         throw new OAuth2AuthenticationException(error);
     }
 }

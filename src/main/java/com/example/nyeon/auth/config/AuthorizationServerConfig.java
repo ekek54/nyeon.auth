@@ -4,7 +4,8 @@ import com.example.nyeon.auth.authorization.oidcuserinfo.IdTokenCustomizer;
 import com.example.nyeon.auth.authorization.oidcuserinfo.OidcUserInfoMapper;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationConverter;
 import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationProvider;
-import com.example.nyeon.auth.authorization.refreshtoken.CookieRefreshTokenAuthenticationConverter;
+import com.example.nyeon.auth.authorization.pkceclientauthentication.PKCEClientAuthenticationToken;
+import com.example.nyeon.auth.authorization.refreshtoken.PublicClientRefreshTokenAuthenticationConverter;
 import com.example.nyeon.auth.authorization.refreshtoken.CustomTokenResponseHandler;
 import com.example.nyeon.auth.authorization.refreshtoken.PublicClientRefreshTokenGenerator;
 import com.example.nyeon.auth.sociallogin.JWTCookieSecurityContextRepository;
@@ -40,6 +41,7 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.web.authentication.PublicClientAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -88,9 +90,10 @@ public class AuthorizationServerConfig {
                 ).authorizationService(authorizationService()
                 ).tokenEndpoint(token -> token
                     .accessTokenRequestConverter(
-                        new CookieRefreshTokenAuthenticationConverter()
+                            new PublicClientRefreshTokenAuthenticationConverter()
                     ).accessTokenResponseHandler(tokenResponseHandler())
-                );
+                )
+        ;
 
         http
                 .exceptionHandling((exceptions) -> exceptions
